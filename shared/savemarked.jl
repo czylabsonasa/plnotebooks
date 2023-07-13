@@ -1,10 +1,10 @@
 # word-counter :-) from K-R
 
 function savemarked()
-  herein=readdir(".")
-  idx=findfirst(x->startswith(x,"project_"),herein)
-  (idx===nothing) && return
-  within=herein[idx]
+  #herein=readdir(".")
+  #idx=findfirst(x->startswith(x,"project_"),herein)
+  #(idx===nothing) && return
+  within="main.jl"
   
   lines=split(read(within,String),'\n',keepempty=true)
 

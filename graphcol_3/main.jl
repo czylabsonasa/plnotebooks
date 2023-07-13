@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.26
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
@@ -26,7 +26,7 @@ end
 # ╔═╡ ad753282-425f-4034-92e9-57d00bee9263
 begin
 	include("../shared/savemarked.jl")
-	savemarked()
+	#savemarked()
 end
 
 # ╔═╡ 0523fb39-6160-405e-9d74-2c5178835ca4
@@ -46,7 +46,7 @@ end
 begin
 
 md"""
-#### project_3
+#### graphcol_3
 * graph loader/converter for dimacs `col` format: `loadcol`
   * the `tolg` parameter for converting the data into the default `lg` format
 * the data is from [Michael Trick's page](https://mat.gsia.cmu.edu/COLOR/instances.html)
@@ -116,7 +116,7 @@ end
 
 # ╔═╡ 6ca7c713-a728-4565-b048-3960dff08f1d
 #### convert the col's to lg's
-for f in readdir("col-instances/"; join=true)
+for f in readdir("../data/col-instances/"; join=true)
 	sf=split(f,'.')
 	if sf[end]=="col"
 		jf=join(sf[1:end-1],'.')
@@ -126,9 +126,9 @@ for f in readdir("col-instances/"; join=true)
 end
 
 # ╔═╡ Cell order:
-# ╟─ad753282-425f-4034-92e9-57d00bee9263
+# ╠═ad753282-425f-4034-92e9-57d00bee9263
 # ╠═d61c96d0-20ae-11ee-0550-b51324cdd3af
-# ╟─5f3aba34-63bf-41bd-9765-81c22345f59e
+# ╠═5f3aba34-63bf-41bd-9765-81c22345f59e
 # ╠═c6dc32db-b8d8-407b-af43-903babe275ba
 # ╠═6ca7c713-a728-4565-b048-3960dff08f1d
 # ╠═0523fb39-6160-405e-9d74-2c5178835ca4

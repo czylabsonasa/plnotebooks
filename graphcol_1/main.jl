@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.26
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
@@ -10,15 +10,15 @@ begin
 	Pkg.activate(".")
 
 	
-	# Pkg.add.(
-	# 	[
-	# 		"DelimitedFiles",
-	# 		"Graphs", "Colors",
-	# 		"DataFrames", "StatsBase",
-	# 		"CairoMakie", "GraphMakie"
-	# 	]
-	# )
-	# Pkg.instantiate()
+	Pkg.add.(
+		[
+			"DelimitedFiles",
+			"Graphs", "Colors",
+			"DataFrames", "StatsBase",
+			"CairoMakie", "GraphMakie"
+		]
+	)
+	Pkg.instantiate()
 
 	using
 		DelimitedFiles,
@@ -35,14 +35,14 @@ end
 
 # ╔═╡ 44f6cc10-a462-4676-ae5e-f6e8372d3d77
 begin
-	md"""#### project_1"""
+	md"""#### graphcol_1"""
 end
 
 # ╔═╡ f2d1d317-898e-48b6-8b3d-cf1af8e53176
 begin
-#--->project_1_data
+#--->graphcol_1_data
 
-function project_1_data()
+function graphcol_1_data()
 	# read the data
 	d0,h0=readdlm(
 		"../data/synthetic_school_enrollment_data.csv",','; 
@@ -86,10 +86,10 @@ function project_1_data()
 	)
 end
 
-#--->project_1_data
+#--->graphcol_1_data
 
 
-data=project_1_data()
+data=graphcol_1_data()
 G=data.G
 num_of_students=data.num_of_students
 num_of_courses=data.num_of_courses
@@ -119,7 +119,7 @@ begin
 	# colorings, therefore we'll use it
 	# it returns an object w/ num_colors and colors fields
 	# we need col.num_colors dates for the exams
-	@time the_coloring=greedy_color(G; reps=1000)
+	@time the_coloring=greedy_color(G; reps=100)
 	
 end
 
@@ -184,7 +184,7 @@ end
 # ╔═╡ Cell order:
 # ╠═3be28e6d-32b3-4c17-b8c0-b97f4ce66cda
 # ╠═44f6cc10-a462-4676-ae5e-f6e8372d3d77
-# ╟─89b711fa-790a-4199-aed6-21ef644c0083
+# ╠═89b711fa-790a-4199-aed6-21ef644c0083
 # ╠═f2d1d317-898e-48b6-8b3d-cf1af8e53176
 # ╠═f4d4ad61-d0b0-4c9a-90c9-0b5b5f2a87e8
 # ╠═25ac6b79-c8a3-4c93-9607-59b4c0326134

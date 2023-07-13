@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.26
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
@@ -34,8 +34,8 @@ end
 # ╔═╡ 3c6f89d7-0ddf-4901-963b-901c8495fdae
 # now deal w/ the original data of project_1
 begin
-include("../shared/project_1_data.jl")
-data=project_1_data()
+include("../shared/graphcol_1_data.jl")
+data=graphcol_1_data()
 G=data.G
 num_of_students=data.num_of_students
 num_of_courses=data.num_of_courses
@@ -45,13 +45,13 @@ end
 # ╔═╡ 9bb6db3e-f84e-4d5e-b095-44e90954b6a4
 begin
 # deal w/ long running cell(s)
-runall=false
+runall=true
 printstyled(stderr,"runall is $(runall)\n",color=:light_red)
 end
 
 # ╔═╡ 1146a1a4-208e-11ee-3e56-5b164f873592
 begin
-	md"""#### project_2
+	md"""#### graphcol_2
 	* the graph is 9-colorable, it would be interesting to know that 8 or less color is enough or not.
 	* for this purpose, we'll develop (actually i wrote it for a [codesignal](https://codesignal.com) interview question...) a simple function in julia, that can be used to compute the chromatic number for *very small* graphs: `graphcol_bt`	
 	"""
