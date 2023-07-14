@@ -13,7 +13,7 @@ end
 # ╔═╡ d5d2e576-d068-4f13-b94b-4f954a73edb6
 begin
 	md"""#### genalg_1
-	* simple ga 
+	* simple discrete ga 
 	"""
 end
 
@@ -27,7 +27,7 @@ LB,UB=-10,10
 PM=0.05
 
 # a type for individuals
-struct X
+mutable struct X
 	val::Float64
 	arr::Vector{TVAR}
 end
