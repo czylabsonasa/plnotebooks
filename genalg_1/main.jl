@@ -146,9 +146,9 @@ end
 
 # ╔═╡ Cell order:
 # ╠═88bca062-8dbd-41da-8602-369411046d46
-# ╟─85edbabf-920c-45b4-8310-fe7e779035c9
-# ╟─f6e52dda-1c9f-46fb-8025-3634fcc2f110
-# ╠═d5d2e576-d068-4f13-b94b-4f954a73edb6
+# ╠═85edbabf-920c-45b4-8310-fe7e779035c9
+# ╠═f6e52dda-1c9f-46fb-8025-3634fcc2f110
+# ╟─d5d2e576-d068-4f13-b94b-4f954a73edb6
 # ╠═a2c302a2-bee3-4fc0-abe7-34e3e35e98be
 # ╠═a6a1ba67-c880-479d-b510-c6c7617be212
 # ╠═d0be687d-e3b6-4cd0-9f14-e01935717ba0

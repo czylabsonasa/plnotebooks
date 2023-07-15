@@ -10,7 +10,7 @@ function savemarked()
 
   state=(pat="",n0=-1)
   for n in 1:length(lines)
-    theline=lines[n]
+    theline=lines[n]|>lstrip
     if startswith(theline,"#--->")
       if state.pat!=""
         open("../shared/$(state.pat).jl","w") do f 
