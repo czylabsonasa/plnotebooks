@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.27
+# v0.19.26
 
 using Markdown
 using InteractiveUtils
@@ -13,12 +13,14 @@ begin
 	Pkg.add.(
 		[
 			"StatsBase",
+			"DataStructures"
 		]
 	)
 	Pkg.instantiate()
 
 	using
-		StatsBase
+		StatsBase, 
+		DataStructures
 end
 
 # ╔═╡ 4c25c370-21c8-11ee-0347-43efcf43c842
@@ -39,27 +41,29 @@ begin
 
 # building blocks of the problem
 const TVAR=Int8                           # type of the vars
+const TOBJ=Float64
+const INF=typemax(TOBJ)
 const NVAR=5                              # num of vars
 const LB,UB=-10,10                        # lower and upper bound 4 vars
 const DOM=TVAR.(collect(LB:UB))           # the domain of vars
 const PM=0.05                             # prob of mutation
-
-mutable struct TGENE                # type for the genes
+const MXIDLE=10                           # 
+	
+mutable struct TCHROM                # type for the chromosome
 	arr::Vector{TVAR}           
-	val::Float64
+	val::TOBJ
 end
 
-# min -> max of the negative
 value(x::Vector{TVAR})=sum(x.^2)
-value!(x::TGENE)=x.val=value(x.arr)    
+value!(x::TCHROM)=x.val=value(x.arr)    
 
-function mutate(x::TGENE)
+function mutate!(x::TCHROM)
 	IDX=(1:NVAR)[rand(NVAR).<PM]
 	x.arr[IDX]=rand(DOM,length(IDX))
 end
 
 
-function cross(p1::TGENE,p2::TGENE,c1::TGENE,c2::TGENE)	
+function cross(p1::TCHROM,p2::TCHROM,c1::TCHROM,c2::TCHROM)	
 	for i in 1:NVAR
 		c1.arr[i],c2.arr[i]=if rand()<0.5
 			p1.arr[i],p2.arr[i]
@@ -69,29 +73,49 @@ function cross(p1::TGENE,p2::TGENE,c1::TGENE,c2::TGENE)
 	end
 end
 
-# random gene
-choose(TGENE)=(arr=rand(DOM,NVAR);TGENE(arr,value(arr)))
+# random chromosome
+choose()=(arr=rand(DOM,NVAR);TCHROM(arr,value(arr)))
 
 
-const POP_SIZE=10
+const POP_SIZE=50
 const MAXSTEP=100
-
+const STOP=(idle=10,tol=1e-4)       # will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` interval)
 function ga()
-	POP=[choose(TGENE) for k in 1:2POP_SIZE]
+	gbest=choose(); gbest.val=Inf
+	tail=CircularBuffer{TOBJ}(STOP.idle)
+	for i in 1:STOP.idle
+		push!(tail,INF)
+	end
+	
+	status=("MAXSTEP",MAXSTEP)
+	POP=[choose() for k in 1:2POP_SIZE]
 	for step in 1:MAXSTEP
 		w=Weights([exp(-POP[i].val) for i in 1:POP_SIZE])
 		idx=sample(1:POP_SIZE, w, POP_SIZE; replace=true)
 		for i in 1:2:POP_SIZE
 			p1,p2,c1,c2=POP[idx[i]],POP[idx[i+1]],POP[i+POP_SIZE],POP[i+POP_SIZE+1]
 			cross(p1,p2,c1,c2)
-			mutate(c1)
-			mutate(c2)
+			mutate!(c1)
+			mutate!(c2)
 			value!(c1)
 			value!(c2)
 		end
 		sort!(POP; by=x->x.val)
-		println(POP[1].val)
-	end
+		lbest=POP[1]
+		#println(lbest.val)
+		
+		
+		if lbest.val<gbest.val
+			gbest=deepcopy(lbest)
+		end
+		push!(tail,gbest.val)
+		if last(tail)+STOP.tol>first(tail)
+			status=("IDLE",step)
+			break
+		end
+	end # main loop
+	gbest,status
+
 end
 
 end
@@ -116,7 +140,7 @@ end
   ╠═╡ =#
 
 # ╔═╡ d0be687d-e3b6-4cd0-9f14-e01935717ba0
-ga()
+@time ga()|>println
 
 # ╔═╡ Cell order:
 # ╟─4c25c370-21c8-11ee-0347-43efcf43c842
