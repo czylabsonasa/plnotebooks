@@ -32,7 +32,7 @@ end
 # ╔═╡ d5d2e576-d068-4f13-b94b-4f954a73edb6
 begin
 	md"""#### genalg_1
-	* discrete ga - 
+	* a simple genetic algorithm: `ga0()`
 	"""
 end
 
@@ -41,14 +41,13 @@ begin
 
 # building blocks of the problem
 const TVAR=Int8                           # type of the vars
-const TOBJ=Float64
+const TOBJ=Float64                        # for simplicity float is used
 const INF=typemax(TOBJ)
 const NVAR=5                              # num of vars
 const LB,UB=-10,10                        # lower and upper bound 4 vars
 const DOM=TVAR.(collect(LB:UB))           # the domain of vars
-const PM=0.05                             # prob of mutation
-const MXIDLE=10                           # 
-	
+const PMUT=0.05                             # prob of mutation
+
 mutable struct TCHROM                # type for the chromosome
 	arr::Vector{TVAR}           
 	val::TOBJ
@@ -58,7 +57,7 @@ value(x::Vector{TVAR})=sum(x.^2)
 value!(x::TCHROM)=x.val=value(x.arr)    
 
 function mutate!(x::TCHROM)
-	IDX=(1:NVAR)[rand(NVAR).<PM]
+	IDX=(1:NVAR)[rand(NVAR).<PMUT]
 	x.arr[IDX]=rand(DOM,length(IDX))
 end
 
@@ -78,9 +77,12 @@ choose()=(arr=rand(DOM,NVAR);TCHROM(arr,value(arr)))
 
 
 const POP_SIZE=50
-const MAXSTEP=100
-const STOP=(idle=10,tol=1e-4)       # will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` interval)
-function ga()
+const MAXSTEP=200
+const STOP=(
+	idle=floor(0.1*MAXSTEP)|>Int,
+	tol=1e-4
+)  # will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` interval)
+function ga0()
 	gbest=choose(); gbest.val=Inf
 	tail=CircularBuffer{TOBJ}(STOP.idle)
 	for i in 1:STOP.idle
@@ -113,7 +115,7 @@ function ga()
 			status=("IDLE",step)
 			break
 		end
-	end # main loop
+	end # of main loop
 	gbest,status
 
 end
@@ -140,7 +142,7 @@ end
   ╠═╡ =#
 
 # ╔═╡ d0be687d-e3b6-4cd0-9f14-e01935717ba0
-@time ga()|>println
+@time ga0()|>println
 
 # ╔═╡ Cell order:
 # ╟─4c25c370-21c8-11ee-0347-43efcf43c842
