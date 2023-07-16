@@ -87,7 +87,7 @@ function loadcol(gfile::String; tolg = false, toopt = false)
 
   num_colors = -1
   E = []
-  nV, nE, tV = -1, -1, -1
+  nV, nE = -1, -1
   for line in gstring
     sline = split(line, keepempty = false)
     (sline[1] == "c") && continue
