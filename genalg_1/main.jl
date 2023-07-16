@@ -137,7 +137,7 @@ choose()=tmp()
 
   const POP_SIZE = 50
   const MAXSTEP = 500
-  const STOP = (idle = floor(0.1 * MAXSTEP) |> Int, tol = 1e-5)  # will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` interval)
+  const STOP = (idle = floor(0.1 * MAXSTEP) |> Int, tol = 1e-5)  # will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` length interval)
   function ga0()
     gbest = choose(TCHROM)
     gbest.val = Inf
