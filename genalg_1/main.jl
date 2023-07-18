@@ -114,12 +114,29 @@ begin
   choose(;n=1) = rand(Uniform(LB, UB),n)
   choose(TCHROM) = (arr=choose(;n=DIM);TCHROM(arr, obj(arr)))
 
-
-
-  # reversing the obj values (to be able to use the weighted `sample`)
+  const POP_SIZE = 50
+  const OFF_SIZE = 40 # must be even and ≤ than POP_SIZE
+  # reversing the obj values (to be able to use the weighted `sample`, 
+  # smaller obj -> larger prob. of choosing)
   const BETA=1.0
 
-  const POP_SIZE = 50
+  function selection(pool,POP,OFF)
+	w = Weights([exp(-POP[i].obj) for i = 1:POP_SIZE])
+	idx = sample(1:POP_SIZE, w, OFF_SIZE; replace = true)
+	for i = 1:2:OFF_SIZE
+	  p1, p2 = POP[idx[i]], POP[idx[i+1]]
+	  c1, c2= OFF[i], OFF[i+1]
+	  cross!(p1, p2, c1, c2)
+	  mutate!(c1); obj!(c1)
+	  mutate!(c2); obj!(c2)
+	end
+	sort!(pool; by = x -> x.obj)
+
+	pool[1]
+  end
+
+
+
   const MAXSTEP = 500
   # the process will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` length interval)	
   const STOP = (idle = min(30,floor(0.1 * MAXSTEP)) |> Int, tol = 1e-9)  
@@ -133,21 +150,15 @@ begin
     end
 
     status = ("MAXSTEP", MAXSTEP)
-    POP = [choose(TCHROM) for k = 1:2POP_SIZE]
+	pool_size=(POP_SIZE+OFF_SIZE)
+    pool = [choose(TCHROM) for k = 1:pool_size]
+	
+	POP = view(pool,1:POP_SIZE)
+	OFF = view(pool,(POP_SIZE+1):pool_size)
     for step = 1:MAXSTEP
-      #println(POP)
-      w = Weights([exp(-POP[i].obj) for i = 1:POP_SIZE])
-      idx = sample(1:POP_SIZE, w, POP_SIZE; replace = true)
-      for i = 1:2:POP_SIZE
-        p1, p2, c1, c2 = POP[idx[i]], POP[idx[i+1]], POP[i+POP_SIZE], POP[i+POP_SIZE+1]
-        cross!(p1, p2, c1, c2)
-        mutate!(c1)
-        mutate!(c2)
-        obj!(c1)
-        obj!(c2)
-      end
-      sort!(POP; by = x -> x.obj)
-      lbest = POP[1]
+      lbest = selection(pool,POP,OFF)
+	  
+	  #println(POP)
 	  
 	  
       if lbest.obj < gbest.obj
@@ -173,7 +184,7 @@ begin
 	best,status,trace=ga0()
 	println(best," ",status)
 	#scatter(Float32.(log.(trace)))
-	scatter(Float32.(trace))
+	scatter(Float32.(log.(trace)))
   end
 end
 
