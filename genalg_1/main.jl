@@ -53,8 +53,9 @@ end
 # ╔═╡ d5d2e576-d068-4f13-b94b-4f954a73edb6
 begin
   md"""#### genalg_1
-    * implementation based on (at least partly) [this](https://pub.towardsai.net/genetic-algorithm-ga-introduction-with-example-code-e59f9bc58eaf), with source on [github](https://github.com/towardsai/tutorials/blob/master/genetic-algorithm-tutorial/implementation.py)
+    * implementation based (at least partly) on [this](https://pub.towardsai.net/genetic-algorithm-ga-introduction-with-example-code-e59f9bc58eaf), with source on [github](https://github.com/towardsai/tutorials/blob/master/genetic-algorithm-tutorial/implementation.py)
   * the parameter names modified to my taste
+  * here, the original parameter values are used.
   """
 end
 
@@ -140,7 +141,7 @@ begin
 
   const MAX_STEP = 500
   # the process will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` length interval)	
-  const STOP = (idle = min(30,floor(0.1 * MAX_STEP)) |> Int, tol = 1e-9)  
+  const STOP = (idle = min(30,floor(0.1 * MAX_STEP)) |> Int, tol = 1e-4)  
 
   parstr="""POP_SIZE=$(POP_SIZE) OFF_SIZE=$(OFF_SIZE) MAX_STEP=$(MAX_STEP)
   PMUT=$(PMUT) SIGMUT=$(SIGMUT) BETA=$(BETA)"""
@@ -198,6 +199,6 @@ end
 # ╟─8d0ebf43-77ed-42ee-a9f9-d050d72ff45e
 # ╟─85edbabf-920c-45b4-8310-fe7e779035c9
 # ╠═271ac99b-2526-450f-91a4-fe036faa0bc8
-# ╟─d5d2e576-d068-4f13-b94b-4f954a73edb6
+# ╠═d5d2e576-d068-4f13-b94b-4f954a73edb6
 # ╠═a6a1ba67-c880-479d-b510-c6c7617be212
 # ╠═d0be687d-e3b6-4cd0-9f14-e01935717ba0
