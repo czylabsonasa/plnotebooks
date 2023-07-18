@@ -17,27 +17,19 @@ end
 # ╔═╡ 271ac99b-2526-450f-91a4-fe036faa0bc8
 begin
   include("../shared/savemarked.jl")
-	
+  import JuliaFormatter
+
   import Pkg
   Pkg.activate(".")
 
-  Pkg.add.([
-	  "StatsBase", 
-	  "DataStructures", 
-	  "Distributions",
-	  "CairoMakie",
-  ])
 
+  Pkg.add.(["StatsBase", "DataStructures", "Distributions"])
   Pkg.instantiate()
 
-  using 
-  	StatsBase, 
-	DataStructures, 
-	Distributions,
-	CairoMakie
+  using StatsBase, DataStructures, Distributions
 end
 
-# ╔═╡ 8d0ebf43-77ed-42ee-a9f9-d050d72ff45e
+# ╔═╡ 88bca062-8dbd-41da-8602-369411046d46
 md"""
 | runit | savemarked | jlformat |
 |---|---|---|
@@ -50,11 +42,19 @@ begin
   savemarked()
 end
 
+# ╔═╡ f6e52dda-1c9f-46fb-8025-3634fcc2f110
+begin
+  _jlformat
+  JuliaFormatter.format("main.jl"; indent = 2)
+end
+
 # ╔═╡ d5d2e576-d068-4f13-b94b-4f954a73edb6
 begin
-  md"""#### genalg_1
-    * implementation based on (at least partly) [this](https://pub.towardsai.net/genetic-algorithm-ga-introduction-with-example-code-e59f9bc58eaf), with source on [github](https://github.com/towardsai/tutorials/blob/master/genetic-algorithm-tutorial/implementation.py)
-  * the parameter names modified to my taste
+  md"""#### genalg_2
+    * `ga1()` is a refined version of `ga0()`
+      * searching for a local/global minimizer `TCHROM` instance.
+    * `LB≤x[k]≤UB` for the individual coordinates
+    * conditions (precisely the squared deviation from the conditions) that must be satisfied should be built into the objective function
   """
 end
 
@@ -62,46 +62,41 @@ end
 # the prototype
 
 begin
-  # num of vars
-  const DIM = 5                              
 
-  # the type for cromosomes
-  mutable struct TCHROM
-    arr::Vector{Float64}
-    obj::Float64
+  # building blocks of the problem
+  const TVAR = Int64                           # type of the vars
+  const TOBJ = Float64                        # for simplicity float is used
+  const INF = typemax(TOBJ)
+  const NVAR = 5                              # num of vars
+  const LB, UB = -10, 10                        # lower and upper bound 4 vars
+  const DOM = TVAR.(collect(LB:UB))           # the domain of vars
+  const PMUT = 0.05                             # prob of mutation
+
+  mutable struct TCHROM                # type for the chromosome
+    arr::Vector{TVAR}
+    val::TOBJ
   end
 
-  # the function to be minimized
-  obj(x) = sum(x .^ 2)
-  obj!(x::TCHROM) = x.obj = obj(x.arr)
+  value(x) = sum(x .^ 2) + sum(x .< LB) + sum(x .> UB)
+  value!(x::TCHROM) = x.val = value(x.arr)
 
-  # lower and upper bound 4 the vars
-  const LB, UB = -10, 10                        
-	
-  # during the mutate event the variables/coordinates can leave the domain, 
-  # this adjust back them
-  # scalar variant
-  adjust(x)=min(UB,max(LB,x))
-
-  function adjust!(x::TCHROM)
-    x.arr .= adjust.(x.arr)
+  mutdist = Normal(0, 0.1 * (UB - LB))
+  mutstep = if TVAR <: AbstractFloat
+    () -> rand(mutdist)
+  else
+    () -> Int(round(rand(mutdist), RoundingMode{:FromZero}()))
   end
 
-  
-  SIGMUT=0.1#*(UB - LB)
-  mutdist = Normal(0, SIGMUT)
-  mutstep() = rand(mutdist)
-  mutate(x)= adjust(x + mutstep())
-
-  # prob of mutation
-  const PMUT = 0.08                             
+  function mutate(x)
+    x + mutstep()
+  end
   function mutate!(x::TCHROM)
-    IDX = (1:DIM)[rand(DIM).<PMUT]
+    IDX = (1:NVAR)[rand(NVAR).<PMUT]
     x.arr[IDX] = mutate.(x.arr[IDX])
   end
 
   function cross!(p1::TCHROM, p2::TCHROM, c1::TCHROM, c2::TCHROM)
-    for i = 1:DIM
+    for i = 1:NVAR
       c1.arr[i], c2.arr[i] = if rand() < 0.5
         p1.arr[i], p2.arr[i]
       else
@@ -111,57 +106,61 @@ begin
   end
 
   # random chromosome
-  choose(;n=1) = rand(Uniform(LB, UB),n)
-  choose(TCHROM) = (arr=choose(;n=DIM);TCHROM(arr, obj(arr)))
+  tmp = if TVAR <: AbstractFloat
+    () -> rand(Uniform(LB, UB))
+  else
+    () -> rand(DiscreteUniform(LB, UB))
+  end
 
+  choose() = tmp()
 
-
-  # reversing the obj values (to be able to use the weighted `sample`)
-  const BETA=1.0
+  choose(TCHROM) = (arr = [choose() for _ = 1:NVAR]; TCHROM(arr, value(arr)))
 
   const POP_SIZE = 50
   const MAXSTEP = 500
   # the process will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` length interval)	
-  const STOP = (idle = min(30,floor(0.1 * MAXSTEP)) |> Int, tol = 1e-9)  
+  const STOP = (idle = floor(0.1 * MAXSTEP) |> Int, tol = 1e-5)
+
   function ga0()
-    trace=[]
-    gbest = choose(TCHROM); gbest.obj = Inf
-	  
-    tail = CircularBuffer{Float64}(STOP.idle)
+    gbest = choose(TCHROM)
+    gbest.val = Inf
+    tail = CircularBuffer{TOBJ}(STOP.idle)
     for i = 1:STOP.idle
-      push!(tail, Inf)
+      push!(tail, INF)
     end
 
     status = ("MAXSTEP", MAXSTEP)
     POP = [choose(TCHROM) for k = 1:2POP_SIZE]
     for step = 1:MAXSTEP
       #println(POP)
-      w = Weights([exp(-POP[i].obj) for i = 1:POP_SIZE])
+      w = Weights([exp(-POP[i].val) for i = 1:POP_SIZE])
+
       idx = sample(1:POP_SIZE, w, POP_SIZE; replace = true)
       for i = 1:2:POP_SIZE
         p1, p2, c1, c2 = POP[idx[i]], POP[idx[i+1]], POP[i+POP_SIZE], POP[i+POP_SIZE+1]
+
         cross!(p1, p2, c1, c2)
+
         mutate!(c1)
         mutate!(c2)
-        obj!(c1)
-        obj!(c2)
+
+        value!(c1)
+        value!(c2)
       end
-      sort!(POP; by = x -> x.obj)
-      lbest = POP[1]
-	  
-	  
-      if lbest.obj < gbest.obj
+
+      sort!(POP; by = x -> x.val)
+
+      lbest = POP[1] #println(lbest.val)
+      if lbest.val < gbest.val
         gbest = deepcopy(lbest)
       end
-	  push!(trace,gbest.obj)
-		
-      push!(tail, gbest.obj)
+      push!(tail, gbest.val)
       if last(tail) + STOP.tol > first(tail)
         status = ("IDLE", step)
         break
       end
     end # of main loop
-    gbest, status, trace
+    gbest, status
 
   end
 
@@ -169,18 +168,14 @@ end
 
 # ╔═╡ d0be687d-e3b6-4cd0-9f14-e01935717ba0
 begin
-  if _runit
-	best,status,trace=ga0()
-	println(best," ",status)
-	#scatter(Float32.(log.(trace)))
-	scatter(Float32.(trace))
-  end
+  _runit && @time ga0() |> println
 end
 
 # ╔═╡ Cell order:
-# ╟─8d0ebf43-77ed-42ee-a9f9-d050d72ff45e
+# ╟─88bca062-8dbd-41da-8602-369411046d46
 # ╟─85edbabf-920c-45b4-8310-fe7e779035c9
+# ╟─f6e52dda-1c9f-46fb-8025-3634fcc2f110
 # ╠═271ac99b-2526-450f-91a4-fe036faa0bc8
-# ╟─d5d2e576-d068-4f13-b94b-4f954a73edb6
+# ╠═d5d2e576-d068-4f13-b94b-4f954a73edb6
 # ╠═a6a1ba67-c880-479d-b510-c6c7617be212
 # ╠═d0be687d-e3b6-4cd0-9f14-e01935717ba0

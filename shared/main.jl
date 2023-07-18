@@ -1,24 +1,17 @@
 ### A Pluto.jl notebook ###
-# v0.19.26
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
 
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
-  quote
-    local iv = try
-      Base.loaded_modules[Base.PkgId(
-        Base.UUID("6e696c72-6542-2067-7265-42206c756150"),
-        "AbstractPlutoDingetjes",
-      )].Bonds.initial_value
-    catch
-      b -> missing
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
     end
-    local el = $(esc(element))
-    global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
-    el
-  end
 end
 
 # ╔═╡ ea3d3cae-b69a-40db-b86a-8e826cf43e46
@@ -299,7 +292,7 @@ version = "17.4.0+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─3ca399b6-234e-11ee-27e7-e5e3f65a2665
+# ╠═3ca399b6-234e-11ee-27e7-e5e3f65a2665
 # ╟─31855bb0-0609-45d8-a5b4-46e37a939532
 # ╟─5fdff204-d20b-446c-9d86-c493a2f528fa
 # ╠═ea3d3cae-b69a-40db-b86a-8e826cf43e46
