@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
@@ -94,7 +94,7 @@ begin
   mutate(x)= adjust(x + mutstep())
 
   # prob of mutation
-  const PMUT = 0.08                             
+  const PMUT = 0.2                           
   function mutate!(x::TCHROM)
     IDX = (1:DIM)[rand(DIM).<PMUT]
     x.arr[IDX] = mutate.(x.arr[IDX])
@@ -114,8 +114,9 @@ begin
   choose(;n=1) = rand(Uniform(LB, UB),n)
   choose(TCHROM) = (arr=choose(;n=DIM);TCHROM(arr, obj(arr)))
 
-  const POP_SIZE = 50
-  const OFF_SIZE = 40 # must be even and ≤ than POP_SIZE
+  const POP_SIZE = 20
+  const OFF_PROP = 1.0
+  const OFF_SIZE = (((POP_SIZE*OFF_PROP)|>ceil|>Int)÷2)*2
   # reversing the obj values (to be able to use the weighted `sample`, 
   # smaller obj -> larger prob. of choosing)
   const BETA=1.0
@@ -137,11 +138,14 @@ begin
 
 
 
-  const MAXSTEP = 500
+  const MAX_STEP = 500
   # the process will stop at `step` if gbest[step] and gbest[step-idle+1] close to each other (no improvement in the last `idle` length interval)	
-  const STOP = (idle = min(30,floor(0.1 * MAXSTEP)) |> Int, tol = 1e-9)  
+  const STOP = (idle = min(30,floor(0.1 * MAX_STEP)) |> Int, tol = 1e-9)  
+
+  parstr="""POP_SIZE=$(POP_SIZE) OFF_SIZE=$(OFF_SIZE) MAX_STEP=$(MAX_STEP)
+  PMUT=$(PMUT) SIGMUT=$(SIGMUT) BETA=$(BETA)"""
   function ga0()
-    trace=[]
+    trace=Float32[]
     gbest = choose(TCHROM); gbest.obj = Inf
 	  
     tail = CircularBuffer{Float64}(STOP.idle)
@@ -149,13 +153,14 @@ begin
       push!(tail, Inf)
     end
 
-    status = ("MAXSTEP", MAXSTEP)
+    status = ("MAX_STEP", MAX_STEP)
 	pool_size=(POP_SIZE+OFF_SIZE)
     pool = [choose(TCHROM) for k = 1:pool_size]
 	
 	POP = view(pool,1:POP_SIZE)
 	OFF = view(pool,(POP_SIZE+1):pool_size)
-    for step = 1:MAXSTEP
+    
+	for step = 1:MAX_STEP
       lbest = selection(pool,POP,OFF)
 	  
 	  #println(POP)
@@ -181,10 +186,11 @@ end
 # ╔═╡ d0be687d-e3b6-4cd0-9f14-e01935717ba0
 begin
   if _runit
-	best,status,trace=ga0()
-	println(best," ",status)
-	#scatter(Float32.(log.(trace)))
-	scatter(Float32.(log.(trace)))
+	@time (best,status,trace)=ga0()
+	println(best,"\n",status)
+	set_theme!(theme_dark())
+	update_theme!(;Axis=(;title=parstr),resolution=(800,600))
+	lines(trace)
   end
 end
 
