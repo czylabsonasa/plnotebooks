@@ -21,4 +21,4 @@
   * weighted sample -> StatsBase
   * mutate -> Distributions
   * stop condition -> CircularBuffr@DataStructures
-
+  * plotting -> CairoMakie
